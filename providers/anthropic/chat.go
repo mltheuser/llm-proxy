@@ -119,6 +119,9 @@ type anthropicUsage struct {
 	OutputTokens             int `json:"output_tokens"`
 	CacheCreationInputTokens int `json:"cache_creation_input_tokens"`
 	CacheReadInputTokens     int `json:"cache_read_input_tokens"`
+	OutputTokensDetails      struct {
+		ThinkingTokens int `json:"thinking_tokens"`
+	} `json:"output_tokens_details"`
 }
 
 // --- Chat implementation ---
@@ -313,6 +316,7 @@ func mapAnthropicResponse(aResp *anthropicChatResponse) *api.ChatResponse {
 			PromptTokens:     promptTokens,
 			CompletionTokens: aResp.Usage.OutputTokens,
 			TotalTokens:      promptTokens + aResp.Usage.OutputTokens,
+			ReasoningTokens:  aResp.Usage.OutputTokensDetails.ThinkingTokens,
 			CacheReadTokens:  aResp.Usage.CacheReadInputTokens,
 		},
 		Message: api.ChatMessage{Role: api.RoleAssistant},
