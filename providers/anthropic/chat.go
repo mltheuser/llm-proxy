@@ -62,9 +62,9 @@ type anthropicToolUseBlock struct {
 }
 
 type anthropicToolResultBlock struct {
-	Type      string `json:"type"`
-	ToolUseID string `json:"tool_use_id"`
-	Content   string `json:"content"`
+	Type      string        `json:"type"`
+	ToolUseID string        `json:"tool_use_id"`
+	Content   []interface{} `json:"content,omitempty"`
 }
 
 type anthropicTool struct {
@@ -239,12 +239,13 @@ func appendMessage(aReq *anthropicChatRequest, m api.ChatMessage) {
 	switch m.Role {
 	case api.RoleTool:
 		// A tool result is a user turn carrying a tool_result block keyed by the
-		// originating tool_use id.
+		// originating tool_use id. Its content is a block list so image parts
+		// travel inside the tool_result.
 		role = "user"
 		blocks = append(blocks, anthropicToolResultBlock{
 			Type:      "tool_result",
 			ToolUseID: m.ToolCallID,
-			Content:   api.TextFromContent(m.Content),
+			Content:   contentBlocks(m.Content),
 		})
 	case api.RoleAssistant:
 		role = "assistant"
