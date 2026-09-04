@@ -1,22 +1,27 @@
 # Testing
 
-The project uses a two-tiered approach: unit tests for logic, and a built-in
-scenario runner for end-to-end provider verification. There are no classic
-integration tests.
+Project relies on a built-in
+scenario runner for end-to-end provider verification. Unit tests are the
+exception, and there are no classic integration tests.
+
+During development, write whatever throwaway tests you need, but do not commit
+them. What lands in the tree is E2E scenarios; a unit test is only committed when
+the owner has explicitly approved it.
 
 ## Linting
 
 -   **Commands**: `make lint` (report) and `make fmt` (auto-format). Both bootstrap a
     pinned `golangci-lint` into `./bin` on first run; no global install needed.
 -   **Config**: `.golangci.yml` (v2 schema) at the repo root.
--   **Scope**: The whole module (`./...`), no external dependencies. The tree is
-    kept at zero findings.
+-   **Scope**: The whole module (`./...`). `make lint` must exit clean: findings are
+    fixed, never suppressed (no `//nolint` directives).
 
 ## Unit Tests
 
 -   **Command**: `make test`
--   **Scope**: Foundational logic (router resolution, candidate selection) without external dependencies.
--   **Location**: `*_test.go` files next to the code (e.g., `router/router_test.go`).
+-   **Scope**: Isolated units of non-trivial logic with no external dependencies. No mocking. New unit tests
+    require owner sign-off before they are committed.
+-   **Location**: `*_test.go` files next to the code (e.g. `router/router_test.go`).
 
 ## End-to-End Tests (`/v1/test`)
 
@@ -33,8 +38,3 @@ The primary way to verify providers is the centralized, scenario-based E2E runne
 **What happens**: the server self-verifies by running `Verify()`, `ListModels()`, and executing applicable scenarios from `scenarios/`.
 
 **Scenarios**: defined in `scenarios/`. Each declares its `RequiredCapabilities()` and runs a specific functional test. Scenarios are skipped (not failed) when the target model lacks a required capability.
-
-> Note: meta-routing models (e.g. OpenRouter's `openrouter/auto`) may advertise a
-> capability in the catalog but not honor it at request time, so auto-selection
-> can hand a capability-gated scenario to a model that fails it. Pin a concrete
-> model to verify the scenario itself.
